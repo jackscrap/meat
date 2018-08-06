@@ -1,7 +1,11 @@
 #include <map>
 #include <iostream>
+#include <string>
 
-#include "window.h"
+#include <GL/glew.h>
+
+#include "window.hpp"
+#include "../player.hpp"
 
 namespace sparky {
 	namespace graphics {
@@ -34,11 +38,78 @@ namespace sparky {
 			glViewport(0, 0, w, h);
 		}
 
-		void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
+		std::map<char, float> Window::pos = {
+			{
+				'x',
+				0
+			},
+			{
+				'y',
+				0
+			}
+		},
+			Window::speed = {
+				{
+					'x',
+					0
+				},
+				{
+					'y',
+					0
+				}
+			};
+
+		void jump() {
+			Window::speed['y'] = .016;
+			Window::pos['y'] = .1;
+		}
+
+		void move(std::string dir) {
+			float inc;
+
+			if (dir == "left") {
+				inc = -.001;
+			}
+
+			if (dir == "right") {
+				inc = .001;
+			}
+
+			if (Window::speed['x'] > -.016 && Window::speed['x'] < .016) {
+				Window::speed['x'] += inc;
+			}
+
+			Window::pos['x'] += Window::speed['x'];
+		}
+
+		void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod) {
 			Window* win = (Window*) glfwGetWindowUserPointer(window);
 
 			win->m_Key[key] = action != GLFW_RELEASE;
+
+			if (action == GLFW_PRESS) {
+				switch(key) {
+					case GLFW_KEY_UP:
+						jump();
+				}
+			} else if (action == GLFW_REPEAT) {
+				switch(key) {
+					case GLFW_KEY_LEFT:
+						move("left");
+
+						break;
+
+					case GLFW_KEY_RIGHT:
+						move("right");
+
+						break;
+				}
+			} else if (action == GLFW_RELEASE) {
+				Window::speed['x'] = 0;
+			}
 		}
+
 
 		void btn_callback(GLFWwindow* window, int btn, int action, int mods) {
 			Window* win = (Window*) glfwGetWindowUserPointer(window);
@@ -47,7 +118,7 @@ namespace sparky {
 		}
 
 		void cursor_pos_callback(GLFWwindow* window, double posX, double posY) {
-			Window *win = (Window*) glfwGetWindowUserPointer(window);
+			Window* win = (Window*) glfwGetWindowUserPointer(window);
 
 			win->m_Curs['x'] = posX;
 			win->m_Curs['y'] = posY;
@@ -97,7 +168,7 @@ namespace sparky {
 			return m_Btn[btn];
 		}
 
-		void Window::mousePos(unsigned int& x, unsigned int& y) {
+		void Window::mousePos(unsigned int x, unsigned int y) {
 			m_Curs['x'] = x;
 			m_Curs['y'] = y;
 		}
